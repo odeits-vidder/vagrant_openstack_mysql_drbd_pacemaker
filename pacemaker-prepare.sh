@@ -22,7 +22,7 @@ sudo crm configure primitive p_ip_mysql ocf:heartbeat:IPaddr2 params ip="10.1.2.
 #sudo crm configure primitive p_ip_service ocf:heartbeat:IPaddr2 params ip="10.1.2.103" iflabel="servicevip" cidr_netmask="24" nic="eth1" op monitor interval="30s"
 #sudo crm configure primitive p_ip_internal ocf:heartbeat:IPaddr2 params ip="10.1.2.102" iflabel="internalvip" cidr_netmask="24" nic="eth1" op monitor interval="30s"
 #Load MySQL configs
-sudo crm configure primitive p_mysql ocf:heartbeat:mysql params additional_parameters="--bind-address=10.1.2.101" config="/db/mysql/mysql/my.cnf" pid="/var/run/mysqld/mysqld.pid" socket="/var/run/mysqld/mysqld.sock" log="/var/log/mysql/mysqld.log" op monitor interval="20s" timeout="10s" op start interval="0" timeout="120s" op stop interval="0" timeout="120s" meta target-role="Started"
+sudo crm configure primitive p_mysql ocf:heartbeat:mysql params additional_parameters="--bind-address=10.1.2.101" config="/db/mysql/mysql/my.cnf" pid="/var/run/mysqld/mysqld.pid" socket="/var/run/mysqld/mysqld.sock" log="/var/log/mysql/mysqld.log" datadir="/db/mysql/mysql" op monitor interval="20s" timeout="10s" op start interval="0" timeout="120s" op stop interval="0" timeout="120s" meta target-role="Started"
 #Create Service Group
 sudo crm configure group g_mysql p_ip_service p_ip_mysql p_lvm_mysql p_fs_mysql p_mysql 
 #Configure Colocation

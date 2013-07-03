@@ -42,7 +42,9 @@ EOF
 sudo crm configure primitive p_apache2 ocf:heartbeat:apache params configfile="/etc/apache2/apache2.conf" op monitor interval="40s"
 sudo crm configure primitive p_memcached ocf:openstack:memcached params pid="/var/run/memcached.pid" config="/etc/memcached.conf" op monitor interval="30s" timeout="30s"
 
-sudo crm configure group g_openstack p_keystone p_glance-registry p_glance-api p_quantum-server p_quantum-metadata-agent p_quantum-l3-agent p_quantum-dhcp-agent p_quantum-plugin-linuxbridge-agent p_libvirt p_nova-api p_nova-cert p_nova-compute p_nova-conductor p_nova-consoleauth p_nova-novncproxy p_nova-scheduler p_iscsi p_cinder-api p_cinder-volume p_cinder-scheduler p_apache2 p_memcached
+sudo crm configure group g_openstack p_keystone p_glance-registry p_glance-api p_quantum-server p_quantum-metadata-agent p_quantum-l3-agent p_quantum-dhcp-agent p_quantum-plugin-linuxbridge-agent p_libvirt p_nova-api p_nova-cert p_nova-compute p_nova-conductor p_nova-consoleauth p_nova-novncproxy p_nova-scheduler p_iscsi p_cinder-api p_cinder-volume p_cinder-scheduler p_apache2 p_memcached meta target-role="Started"
+
+#sudo drbdadm verify mysql
 
 #Configure Colocation
 #sudo crm configure colocation c_openstack_on_drbd inf: g_openstack ms_drbd_mysql:Master
