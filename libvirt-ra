@@ -1,0 +1,368 @@
+#!/bin/sh
+#
+#
+# OpenStack libvirt
+#
+# Description:  Manages a libvirt process as an HA resource
+#
+# Authors:      Konstantin Benz
+#
+# Support:      benn@zhaw.ch
+# License:      GNU General Public License (GPL) 3.0
+#
+# (c) 2013      Zurich University of Applied Science
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_client_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_os_username
+#   OCF_RESKEY_os_password
+#   OCF_RESKEY_os_tenant_name
+#   OCF_RESKEY_os_auth_url
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#   OCF_RESKEY_additional_parameters
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+OCF_RESKEY_binary_default="/usr/sbin/libvirtd"
+OCF_RESKEY_config_default="/etc/libvirt/libvirtd.conf"
+OCF_RESKEY_pid_default="/var/run/libvirtd.pid"
+OCF_RESKEY_user_default="vagrant"
+OCF_RESKEY_client_binary_default="virsh"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_client_binary=${OCF_RESKEY_client_binary_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an OpenStack libvirt process as an HA resource 
+
+        The 'start' operation starts the identity service.
+        The 'stop' operation stops the identity service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the identity service is running
+        The 'monitor' operation reports whether the identity service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="libvirt">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the LibVirt (libvirt)
+May manage a libvirt-all instance or a clone set that 
+creates a distributed libvirt cluster.
+</longdesc>
+<shortdesc lang="en">Manages the LibVirt (libvirt)</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the LibVirt server binary (libvirtd)
+</longdesc>
+<shortdesc lang="en">libvirt server binary (libvirt-all)</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="client_binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the LibVirt client binary (libvirt)
+</longdesc>
+<shortdesc lang="en">libvirt server binary (libvirt)</shortdesc>
+<content type="string" default="${OCF_RESKEY_client_binary_default}" />
+</parameter>
+
+<parameter name="config" unique="0" required="0">
+<longdesc lang="en">
+Location of the LibVirt configuration file
+</longdesc>
+<shortdesc lang="en">libvirt configuration file</shortdesc>
+<content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="os_username" unique="0" required="0">
+<longdesc lang="en">
+The username to use when logging into libvirt for monitoring purposes
+</longdesc>
+<shortdesc lang="en">libvirt monitoring login</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="os_password" unique="0" required="0">
+<longdesc lang="en">
+The password to use when logging into libvirt for monitoring purposes
+</longdesc>
+<shortdesc lang="en">libvirt monitoring password</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="os_tenant_name" unique="0" required="0">
+<longdesc lang="en">
+The tenant to use when logging into libvirt for monitoring purposes
+</longdesc>
+<shortdesc lang="en">libvirt monitoring tenant</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="os_auth_url" unique="0" required="0">
+<longdesc lang="en">
+The URL pointing to this libvirt instance to use when logging in for monitoring purposes
+</longdesc>
+<shortdesc lang="en">libvirt URL for monitoring login</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running LibVirt (libvirt)
+</longdesc>
+<shortdesc lang="en">LibVirt (libvirt) user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this libvirt instance (libvirt-all)
+</longdesc>
+<shortdesc lang="en">LibVirt (libvirt) pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the libvirt server (libvirt-all)
+</longdesc>
+<shortdesc lang="en">Additional parameters for the libvirt server</shortdesc>
+<content type="string" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+libvirt_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+    check_binary $OCF_RESKEY_client_binary
+
+    # A config file on shared storage that is not available
+    # during probes is OK.
+    if [ ! -f $OCF_RESKEY_config ]; then
+        if ! ocf_is_probe; then
+            ocf_log err "Config $OCF_RESKEY_config doesn't exist"
+            return $OCF_ERR_INSTALLED
+        fi
+        ocf_log_warn "Config $OCF_RESKEY_config not available during a probe"
+    fi
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+libvirt_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "LibVirt (libvirt) is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but LibVirt (libvirt) is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+libvirt_monitor() {
+    local rc
+
+    libvirt_status
+    rc=$?
+
+    # If status returned anything but success, return that immediately
+    if [ $rc -ne $OCF_SUCCESS ]; then
+        return $rc
+    fi
+
+    # Check whether we are supposed to monitor by logging into libvirt
+    # and do it if that's the case.
+    if [ -n "$OCF_RESKEY_client_binary" ]; then
+        ocf_run -q $OCF_RESKEY_client_binary \
+        list --all > /dev/null 2>&1
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            ocf_log err "Failed to connect to the LibVirt (libvirt): $rc"
+            return $OCF_NOT_RUNNING
+        fi
+    fi
+    
+    ocf_log debug "LibVirt (libvirt) monitor succeeded"
+    return $OCF_SUCCESS
+}
+
+libvirt_start() {
+    local rc
+
+    libvirt_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "LibVirt (libvirt) already running"
+        return $OCF_SUCCESS
+    fi
+
+    # run the actual libvirt daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    #su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file $OCF_RESKEY_config \
+     # $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    sudo /bin/sh -c "sudo service libvirt-bin restart"
+    # Spin waiting for the server to come up.
+    # Let the CRM/LRM time us out if required
+    while true; do
+    sleep 1
+    libvirt_monitor
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then 
+        break
+    fi
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then 
+        ocf_log err "LibVirt (libvirt) start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    done 
+
+    #sudo /bin/sh -c "sudo rm -rf /var/run/libvirt/libvirt.pid"
+    #sudo /bin/sh -c "sudo touch 0777 /var/run/libvirt/libvirt.pid"
+    #sudo /bin/sh -c "sudo chown vagrant:vagrant /var/run/libvirt/libvirt.pid"
+    #done
+
+    ocf_log info "LibVirt (libvirt) started"
+    return $OCF_SUCCESS
+}
+
+libvirt_stop() {
+    local rc
+    local pid
+
+    libvirt_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "LibVirt (libvirt) already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "LibVirt (libvirt) couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        libvirt_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "LibVirt (libvirt) still hasn't stopped yet. Waiting ..."
+    done
+
+    libvirt_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "LibVirt (libvirt) failed to stop after ${shutdown_timeout}s \
+          using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+
+    ocf_log info "LibVirt (libvirt) stopped"
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+libvirt_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        libvirt_start;;
+  stop)         libvirt_stop;;
+  status)       libvirt_status;;
+  monitor)      libvirt_monitor;;
+  validate-all) ;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
+
