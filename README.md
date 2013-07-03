@@ -1,7 +1,7 @@
-vagrant_mysql_drbd_pacemaker
+vagrant_openstack_mysql_drbd_pacemaker
 =======================
 
-This Vagrant script installs 2 VM nodes using Vagrant, Puppet and Virtualbox. Both nodes operate a MySQL server on a redundant DRBD device. The MySQL server is reached on a virtual IP which is shared between nodes. When a MySQL node fails, Pacemaker switches control flow to the other node and organizes failover tasks.
+This Vagrant script installs 2 OpenStack VM nodes using Vagrant, Puppet and Virtualbox. Both nodes operate a MySQL server on a redundant DRBD device. The MySQL server is reached on a virtual IP which is shared between nodes. When a VM node fails, Pacemaker switches control flow to the other node and organizes failover tasks.
 
 Prerequisites
 =======================
@@ -16,5 +16,5 @@ Installation
 5. Wait for about 5-10 min. (the script takes time ;-))
 6. Done.
 
-Now you can access the OpenStack-Dashboard with your web browser by tiping the URL "http://192.168.22.11/horizon".
+Now you can access the OpenStack-Dashboard with your web browser by tiping the URL "http://10.1.2.101/horizon".
 Login with user name "admin" and password "admin_pass". Have fun!
