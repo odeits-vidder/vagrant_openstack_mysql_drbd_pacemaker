@@ -96,6 +96,7 @@ sudo service keystone restart
 
 sshpass -p "vagrant" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t -t vagrant@grizzly1 <<EOF
 echo "SSH into grizzly1"
+sudo cp /vagrant/keystone-service.conf /etc/init/keystone.conf
 sudo service keystone restart
 exit
 EOF

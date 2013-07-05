@@ -240,13 +240,13 @@ keystone_monitor() {
     if [ -n "$OCF_RESKEY_client_binary" ] && [ -n "$OCF_RESKEY_os_username" ] \
     && [ -n "$OCF_RESKEY_os_password" ] && [ -n "$OCF_RESKEY_os_tenant_name" ] \
     && [ -n "$OCF_RESKEY_os_auth_url" ]; then
-        ocf_run -q source creds        
-        ocf_run -q $OCF_RESKEY_client_binary \
-        --os-username "$OCF_RESKEY_os_username" \
-        --os-password "$OCF_RESKEY_os_password" \
-        --os-tenant-name "$OCF_RESKEY_os_tenant_name" \
-        --os-auth-url "$OCF_RESKEY_os_auth_url" \
-        user-list > /dev/null 2>&1
+        #sudo /bin/sh -c "source creds"        
+        sudo /bin/sh -c "$OCF_RESKEY_client_binary \
+        --os-username \"$OCF_RESKEY_os_username\" \
+        --os-password \"$OCF_RESKEY_os_password\" \
+        --os-tenant-name \"$OCF_RESKEY_os_tenant_name\" \
+        --os-auth-url \"$OCF_RESKEY_os_auth_url\" \
+        user-list > /dev/null 2>&1"
         rc=$?
         if [ $rc -ne 0 ]; then
             ocf_log err "Failed to connect to the OpenStack Identity (Keystone): $rc"
