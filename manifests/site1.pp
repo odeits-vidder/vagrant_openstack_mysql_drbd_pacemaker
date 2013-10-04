@@ -188,9 +188,6 @@ Exec["apt-update"] -> Package <| |>
 	package { 'open-iscsi-utils':
 		ensure 		=> 'present',
 	}
-	package { 'iscsitarget-source':
-		ensure 		=> 'present',
-	}
 	package { 'iscsitarget-dkms':
 		ensure 		=> 'present',
 	}

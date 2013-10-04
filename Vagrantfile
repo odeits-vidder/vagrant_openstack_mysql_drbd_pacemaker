@@ -22,14 +22,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :grizzly1 do |grizzly1_config|
 
-    grizzly1_config.vm.box = "precise64"
-    grizzly1_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    grizzly1_config.vm.box = "raring64"
+    grizzly1_config.vm.box_url = "https://dl.dropboxusercontent.com/u/547671/thinkstack-raring64.box"
 
     # grizzly1_config.vm.boot_mode = :gui
     grizzly1_config.vm.network :private_network, ip: "10.1.2.44"
-    grizzly1_config.vm.network :public_network
+    #grizzly1_config.vm.network :public_network
     grizzly1_config.vm.network :private_network, ip: "192.168.22.11"
-    #grizzly1_config.vm.network :bridged, "192.168.22.11"
     grizzly1_config.vm.host_name = "grizzly1"
     grizzly1_config.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--memory", 1024]
@@ -51,11 +50,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :grizzly2 do |grizzly2_config|
 
-    grizzly2_config.vm.box = "precise64"
-    grizzly2_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    grizzly2_config.vm.box = "raring64"
+    grizzly2_config.vm.box_url = "https://dl.dropboxusercontent.com/u/547671/thinkstack-raring64.box"
 
     grizzly2_config.vm.network :private_network, ip: "10.1.2.45"
-    grizzly2_config.vm.network :public_network
+    #grizzly2_config.vm.network :public_network
     grizzly2_config.vm.network :private_network, ip: "192.168.22.12"
     grizzly2_config.vm.host_name = "grizzly2"
     
