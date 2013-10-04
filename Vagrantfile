@@ -20,9 +20,8 @@ Vagrant::Config.run do |config|
 
   config.vm.define :grizzly1 do |grizzly1_config|
 
-    grizzly1_config.vm.box = "precise64_with_services"
-    grizzly1_config.vm.box_url = "https://www.dropbox.com/s/dln3v7nf8nwhf72/package.box"
-    #grizzly1_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    grizzly1_config.vm.box = "precise64"
+    grizzly1_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
     # grizzly1_config.vm.boot_mode = :gui
     grizzly1_config.vm.network :hostonly, "10.1.2.44"
@@ -40,7 +39,6 @@ Vagrant::Config.run do |config|
 
     grizzly1_config.vm.provision :shell, :path => "prep.sh"
     grizzly1_config.vm.provision :puppet do |grizzly1_puppet|
-      grizzly1_puppet.pp_path = "/tmp/vagrant-puppet"
       grizzly1_puppet.module_path = "modules"
       grizzly1_puppet.manifests_path = "manifests"
       grizzly1_puppet.manifest_file = "site1.pp"
@@ -54,9 +52,8 @@ Vagrant::Config.run do |config|
 
   config.vm.define :grizzly2 do |grizzly2_config|
 
-    grizzly2_config.vm.box = "precise64_with_services"
-    grizzly2_config.vm.box_url = "https://www.dropbox.com/s/dln3v7nf8nwhf72/package.box"
-    #grizzly2_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    grizzly2_config.vm.box = "precise64"
+    grizzly2_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
     # grizzly1_config.vm.boot_mode = :gui
     grizzly2_config.vm.network :hostonly, "10.1.2.45"
@@ -74,7 +71,6 @@ Vagrant::Config.run do |config|
 
     grizzly2_config.vm.provision :shell, :path => "prep.sh"
     grizzly2_config.vm.provision :puppet do |grizzly2_puppet|
-      grizzly2_puppet.pp_path = "/tmp/vagrant-puppet"
       grizzly2_puppet.module_path = "modules"
       grizzly2_puppet.manifests_path = "manifests"
       grizzly2_puppet.manifest_file = "site2.pp"
