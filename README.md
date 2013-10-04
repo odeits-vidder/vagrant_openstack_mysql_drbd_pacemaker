@@ -10,11 +10,12 @@ Vagrant, Puppet, Virtualbox, Vagrant OpenStack plugin
 Installation
 =======================
 1. Install Vagrant, Puppet and Virtualbox
-2. Clone this repository to a folder (e. g. grizzly_test)
-3. Open a terminal and cd to your folder.
-4. Run "vagrant up" in the terminal.
-5. Wait for about 5-10 min. (the script takes time ;-))
-6. Done.
+2. Install OpenStack plugin for vagrant `vagrant plugin install vagrant-openstack`
+3. Clone this repository to a folder (e. g. grizzly_test)
+4. Open a terminal and cd to your folder.
+5. Run "vagrant up" in the terminal.
+6. Wait for about 5-10 min. (the script takes time ;-))
+7. Done.
 
 Now you can access the OpenStack-Dashboard with your web browser by tiping the URL "http://10.1.2.101/horizon".
 Login with user name "admin" and password "admin_pass". Have fun!
