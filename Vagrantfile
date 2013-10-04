@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # grizzly1_config.vm.boot_mode = :gui
     grizzly1_config.vm.network :private_network, ip: "10.1.2.44"
-    #grizzly1_config.vm.network :bridged, "192.168.22.11"
+    grizzly1_config.vm.network :public_network
     grizzly1_config.vm.network :private_network, ip: "192.168.22.11"
     #grizzly1_config.vm.network :bridged, "192.168.22.11"
     grizzly1_config.vm.host_name = "grizzly1"
@@ -55,9 +55,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     grizzly2_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
     grizzly2_config.vm.network :private_network, ip: "10.1.2.45"
-    #grizzly1_config.vm.network :bridged, "192.168.22.11"
+    grizzly2_config.vm.network :public_network
     grizzly2_config.vm.network :private_network, ip: "192.168.22.12"
-    #grizzly1_config.vm.network :bridged, "192.168.22.11"
     grizzly2_config.vm.host_name = "grizzly2"
     
     grizzly2_config.vm.provider :virtualbox do |vb|
