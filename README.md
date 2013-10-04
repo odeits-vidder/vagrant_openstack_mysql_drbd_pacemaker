@@ -5,7 +5,7 @@ This Vagrant script installs 2 OpenStack VM nodes using Vagrant, Puppet and Virt
 
 Prerequisites
 =======================
-Vagrant, Puppet, Virtualbox
+Vagrant, Puppet, Virtualbox, Vagrant OpenStack plugin
 
 Installation
 =======================
