@@ -16,7 +16,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-Vagrant::Config.run do |config|
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :grizzly1 do |grizzly1_config|
 
@@ -24,18 +26,16 @@ Vagrant::Config.run do |config|
     grizzly1_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
     # grizzly1_config.vm.boot_mode = :gui
-    grizzly1_config.vm.network :hostonly, "10.1.2.44"
+    grizzly1_config.vm.network :private_network, ip: "10.1.2.44"
     #grizzly1_config.vm.network :bridged, "192.168.22.11"
-    grizzly1_config.vm.network :hostonly, "192.168.22.11"
+    grizzly1_config.vm.network :private_network, ip: "192.168.22.11"
     #grizzly1_config.vm.network :bridged, "192.168.22.11"
     grizzly1_config.vm.host_name = "grizzly1"
-    grizzly1_config.vm.customize ["modifyvm", :id, "--memory", 1024]
-    grizzly1_config.ssh.max_tries = 100
-    grizzly1_config.vm.forward_port 80, 8088
-    grizzly1_config.vm.forward_port 22, 2223
-
-    #grizzly1_config.persistent_storage.location = "~/development/sourcehdd1.vdi"
-    #grizzly1_config.persistent_storage.size = 50000
+    grizzly1_config.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", 1024]
+    end
+    grizzly1_config.vm.network :forwarded_port, guest: 80, host: 8088
+    grizzly1_config.vm.network :forwarded_port, guest: 22, host: 2223
 
     grizzly1_config.vm.provision :shell, :path => "prep.sh"
     grizzly1_config.vm.provision :puppet do |grizzly1_puppet|
@@ -45,7 +45,6 @@ Vagrant::Config.run do |config|
       grizzly1_puppet.facter = { "fqdn" => "grizzly1" }
     end
 
-    #grizzly1_config.vm.provision :shell, :path => "script.sh"
     grizzly1_config.vm.provision :shell, :path => "lvm-setup.sh"
     grizzly1_config.vm.provision :shell, :path => "sshtunnel.sh"
   end
@@ -55,16 +54,17 @@ Vagrant::Config.run do |config|
     grizzly2_config.vm.box = "precise64"
     grizzly2_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
-    # grizzly1_config.vm.boot_mode = :gui
-    grizzly2_config.vm.network :hostonly, "10.1.2.45"
+    grizzly2_config.vm.network :private_network, ip: "10.1.2.45"
     #grizzly1_config.vm.network :bridged, "192.168.22.11"
-    grizzly2_config.vm.network :hostonly, "192.168.22.12"
+    grizzly2_config.vm.network :private_network, ip: "192.168.22.12"
     #grizzly1_config.vm.network :bridged, "192.168.22.11"
     grizzly2_config.vm.host_name = "grizzly2"
-    grizzly2_config.vm.customize ["modifyvm", :id, "--memory", 1024]
-    grizzly2_config.ssh.max_tries = 100
-    grizzly2_config.vm.forward_port 80, 8089
-    grizzly2_config.vm.forward_port 22, 2224
+    
+    grizzly2_config.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", 1024]
+    end
+    grizzly2_config.vm.network :forwarded_port, guest: 80, host: 8089
+    grizzly2_config.vm.network :forwarded_port, guest: 22, host: 2224
 
     #grizzly2_config.persistent_storage.location = "~/development/sourcehdd2.vdi"
     #grizzly2_config.persistent_storage.size = 50000
